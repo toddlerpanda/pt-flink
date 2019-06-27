@@ -1,0 +1,75 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
+    id 'java'
+    id 'application'
+}
+
+apply plugin: 'eclipse'
+
+group = 'com.me'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+configurations {
+}
+
+ext{
+    flinkVersion = '1.7.2'
+}
+
+repositories {
+    jcenter()
+}
+
+
+dependencies {
+
+    compile 'org.slf4j:slf4j-api:1.7.21',
+            // 'org.slf4j:slf4j-simple:1.7.21',
+            'org.glassfish.jersey.media:jersey-media-json-jackson:2.22.2'
+    
+	compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+	compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+
+    compile group: 'com.google.guava', name: 'guava', version: '23.6-jre'
+
+    compile group: 'org.apache.flink', name: 'flink-connector-kafka_2.11', version: "$rootProject.ext.flinkVersion"
+    compile group: 'org.apache.flink', name: 'flink-streaming-java_2.11', version: "$rootProject.ext.flinkVersion"
+
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+
+    testCompile 'junit:junit:4.12'
+    testCompile group: 'org.apache.flink', name: 'flink-streaming-java_2.11' , version: "$rootProject.ext.flinkVersion", classifier: 'tests'
+    testCompile group: 'org.apache.flink', name: 'flink-test-utils_2.11', version: "$rootProject.ext.flinkVersion"
+
+}
+
+// Manual test as it require Kafka.  See instructions in docker/simple/docker-compose.yml
+test {
+    exclude 'com/resolute/ad/research/**/*.class'
+    exclude 'com/resolute/ad/meter/IntegrationTest.class'
+}
+
+
+mainClassName = 'com.me.HelloMain'
+
+shadowJar {
+    manifest {
+        attributes 'Implementation-Title': 'Flink Meter Status',
+                'Implementation-Version': 2.0,
+                'Main-Class': mainClassName
+    }
+
+    exclude 'web-docs/**'
+    exclude 'assets/**'
+
+    dependencies {
+
+    }
+}
+
+
+// disable distZip and distTar from the application plugin to speed up buildm
+distTar.enabled=false
+distZip.enabled=false
